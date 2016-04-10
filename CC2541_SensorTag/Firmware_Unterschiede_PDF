@@ -1,0 +1,21 @@
+Es gibt unterschiedliche PDFs für die attribute table
+
+Die hier von 2013 und deckt sich eigentlich gut mit dem was wir in gatttool sehen, allerdings fehlt das Ende nach  0x68 (GATT_CHAR_USER_DESC_UUID)
+
+http://processors.wiki.ti.com/images/archive/a/a8/20130111154127!BLE_SensorTag_GATT_Server.pdf
+
+Dann gibt es ein neueres PDF
+
+http://processors.wiki.ti.com/images/a/a8/BLE_SensorTag_GATT_Server.pdf which is linked from the wiki
+http://processors.wiki.ti.com/index.php/SensorTag_User_Guide
+
+starts to differ beginning from handle 0x002B "IR Temperature Period".
+The 3 equivalent values for 0x002B...0x002D aren't even mentioned in the first pdf.
+
+So I begun to wonder if there are different firmware/hardware versions
+of the CC2541 SensorTag but haven't found any infos yet.
+
+Mine has a label with "1.4.1 1346" on it which might refer to the firmware version.
+Has someone also observed the differences and can enlighten me?
+
+Anscheinend gibt es echt unterschiedliche Firmware und unser Sensortag (oder die Firmware) hat die Period noch nicht.

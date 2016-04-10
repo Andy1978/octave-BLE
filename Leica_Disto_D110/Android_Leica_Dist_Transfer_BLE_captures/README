@@ -1,0 +1,9 @@
+Unter Android 4.4 Leica DISTO™ transfer BT LE über google play installiert
+(https://play.google.com/store/apps/details?id=leica.disto.transferBLE)
+
+dann unter Entwickleroptionen -> Enable Bluetooth HCI snoop aktiviert.
+Die Pakete werden dann im wireshark format nach sdcard/ oder Android/data gespeichert
+
+btsnoop_hci_1.log war relativ kurz, Laser ein/aus, Messung starten
+
+btsnoop_hci_3.log wohl am aussagekräftigen, allerdings ohne Verbindungsaufbau

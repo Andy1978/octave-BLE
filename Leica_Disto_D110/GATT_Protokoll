@@ -1,0 +1,40 @@
+Vorerst handles anstatt uuid verwenden
+
+Indication für Entfernung aktivieren
+  char-write-req f 0200
+  Characteristic value was written successfully
+
+Es gibt noch eine zweites Handle 0x0012, bei dem "Indicate" aktiviert werden kann.
+Wird dieser auf "Indicate (0x0200)" gesetzt, wird der alte Messwert mit der
+Bluetooth Taste übertragen (value dann auf hnd 0x000e)
+  char-write-req 12 0200
+  Characteristic value was written successfully
+
+  Wenn man btsnoop_hci_2.log anschaut, macht das die Leica Anwendung nach 12.78s
+  (nach discovery, connect usw.) einmalig.
+  Das eigentlich dazugehörige handle 0x0011 meldet sich dann immer mit value 0x0000
+  (auch in den HCI snoop logs)
+
+Entfernung lesen, Value ist ein little-endian float
+  char-read-hnd e
+  Characteristic value/descriptor: 3e e8 99 3e 
+  Indication   handle = 0x000e value: 10 58 99 3e
+
+  Dieser Wert wird nur aktualisiert, wenn Indication (Notification mit Acknoledge) (siehe oben) aktiviert wurde.
+
+Laser einschalten
+  char-write-req 14 6f
+  Characteristic value was written successfully
+
+Laser ausschalten
+  char-write-req 14 70
+  Characteristic value was written successfully
+
+Messung ohne Beep (Laser ein, Messung, Laser aus)
+  char-write-req 14 67
+  Characteristic value was written successfully
+
+  Entfernung dann auch per Indication handle 0x000e
+  Außerdem Indication handle 0x0011 wenn aktiviert, allerding immer value = 0x0000 (Nutzen noch unklar)
+
+

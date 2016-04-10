@@ -1,0 +1,91 @@
+Den GBU521 Bluetooth Dongle einstecken:
+[ 5725.772051] usb 6-1: new full-speed USB device number 2 using ohci-pci
+[ 5725.947104] usb 6-1: New USB device found, idVendor=0a5c, idProduct=21e8
+[ 5725.947117] usb 6-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 5725.947123] usb 6-1: Product: BCM20702A0
+[ 5725.947128] usb 6-1: Manufacturer: Broadcom Corp
+[ 5725.947133] usb 6-1: SerialNumber: 000272CCD21C
+[ 5726.066840] Bluetooth: Core ver 2.17
+[ 5726.066878] NET: Registered protocol family 31
+[ 5726.066880] Bluetooth: HCI device and connection manager initialized
+[ 5726.066895] Bluetooth: HCI socket layer initialized
+[ 5726.066898] Bluetooth: L2CAP socket layer initialized
+[ 5726.066904] Bluetooth: SCO socket layer initialized
+[ 5726.086158] usbcore: registered new interface driver btusb
+
+Unter Debian jessie zeigt das
+
+[14774.242371] bluetooth hci0: firmware: failed to load brcm/BCM20702A0-0a5c-21e8.hcd (-2)
+[14774.242407] bluetooth hci0: Direct firmware load failed with error -2
+[14774.242413] bluetooth hci0: Falling back to user helper
+[14774.274295] Bluetooth: hci0: BCM: patch brcm/BCM20702A0-0a5c-21e8.hcd not found
+
+Siehe BCM20702A0_missing_firmware
+
+$ sudo hciconfig 
+hci0:	Type: BR/EDR  Bus: USB
+	BD Address: 00:02:72:CC:D2:1C  ACL MTU: 1021:8  SCO MTU: 64:1
+	DOWN 
+	RX bytes:558 acl:0 sco:0 events:28 errors:0
+	TX bytes:355 acl:0 sco:0 commands:28 errors:0
+
+UUIDS
+
+ xxxxxxxx-0000-1000-8000-00805F9B34FB
+
+https://www.bluetooth.org/en-us/specification/assigned-numbers
+
+=================================================
+Dongle ist DOWN, daher aktivieren:
+
+$ sudo hciconfig hci0 up
+$ sudo hciconfig hci0
+hci0:	Type: BR/EDR  Bus: USB
+	BD Address: 00:02:72:CC:D2:1C  ACL MTU: 1021:8  SCO MTU: 64:1
+	UP RUNNING 
+	RX bytes:1116 acl:0 sco:0 events:56 errors:0
+	TX bytes:710 acl:0 sco:0 commands:56 errors:0
+
+Scann nach BLE devices starten und dann den Taster am SensorTag drücken:
+$ sudo hcitool lescan
+LE Scan ...
+34:B1:F7:D4:F2:E7 (unknown)
+34:B1:F7:D4:F2:E7 SensorTag
+
+(Scan mit CTRL+C abbrechen)
+
+$ gatttool -b 34:B1:F7:D4:F2:E7 --interactive
+
+[34:B1:F7:D4:F2:E7][LE]> primary
+attr handle: 0x0001, end grp handle: 0x000b uuid: 00001800-0000-1000-8000-00805f9b34fb
+attr handle: 0x000c, end grp handle: 0x000f uuid: 00001801-0000-1000-8000-00805f9b34fb
+attr handle: 0x0010, end grp handle: 0x0022 uuid: 0000180a-0000-1000-8000-00805f9b34fb
+attr handle: 0x0023, end grp handle: 0x002a uuid: f000aa00-0451-4000-b000-000000000000
+attr handle: 0x002b, end grp handle: 0x0035 uuid: f000aa10-0451-4000-b000-000000000000
+attr handle: 0x0036, end grp handle: 0x003d uuid: f000aa20-0451-4000-b000-000000000000
+attr handle: 0x003e, end grp handle: 0x0048 uuid: f000aa30-0451-4000-b000-000000000000
+attr handle: 0x0049, end grp handle: 0x0054 uuid: f000aa40-0451-4000-b000-000000000000
+attr handle: 0x0055, end grp handle: 0x005c uuid: f000aa50-0451-4000-b000-000000000000
+attr handle: 0x005d, end grp handle: 0x0061 uuid: 0000ffe0-0000-1000-8000-00805f9b34fb
+attr handle: 0x0062, end grp handle: 0x0068 uuid: f000aa60-0451-4000-b000-000000000000
+attr handle: 0x0069, end grp handle: 0x0073 uuid: f000ccc0-0451-4000-b000-000000000000
+attr handle: 0x0074, end grp handle: 0xffff uuid: f000ffc0-0451-4000-b000-000000000000
+
+[34:B1:F7:D4:F2:E7][LE]> char-desc 23 2a
+handle: 0x0023, uuid: 2800
+handle: 0x0024, uuid: 2803
+handle: 0x0025, uuid: f000aa01-0451-4000-b000-000000000000
+handle: 0x0026, uuid: 2902
+handle: 0x0027, uuid: 2901
+handle: 0x0028, uuid: 2803
+handle: 0x0029, uuid: f000aa02-0451-4000-b000-000000000000
+handle: 0x002a, uuid: 2901
+
+
+[34:B1:F7:D4:F2:E7][LE]> char-read-hnd 2A
+Characteristic value/descriptor: 49 52 20 54 65 6d 70 2e 20 43 6f 6e 66 2e
+
+octave:> char(sscanf("49 52 20 54 65 6d 70 2e 20 43 6f 6e 66 2e","%x")')
+ans = IR Temp. Conf.
+
+https://www.bluetooth.org/en-us/specification/assigned-numbers/generic-attribute-profile

@@ -1,0 +1,149 @@
+"IOGEAR Bluetooth 4.0 Model GBU521W6"
+Diese melden sich unter Debian 7.4 wheezy mit kernel 3.2.0.4 mit
+
+[62186.028080] usb 6-1: new full-speed USB device number 3 using ohci_hcd
+[62186.203077] usb 6-1: New USB device found, idVendor=0a5c, idProduct=21e8
+[62186.203087] usb 6-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[62186.203094] usb 6-1: Product: BCM20702A0
+[62186.203099] usb 6-1: Manufacturer: Broadcom Corp
+[62186.203105] usb 6-1: SerialNumber: 000272CCD2E0
+[62186.292524] Bluetooth: Generic Bluetooth USB driver ver 0.6
+[62186.294187] usbcore: registered new interface driver btusb
+
+========= Setup =========
+
+sudo apt-get install bluetooth
+
+========= Tools für bluetooth unter Linux =========
+
+andy@HoloBabe:~$ /etc/init.d/bluetooth status
+[ ok ] bluetooth is running.
+
+sdptool
+
+hcitool
+
+andy@HoloBabe:/etc/bluetooth$ hcitool dev
+Devices:
+	hci0	00:02:72:CC:D2:1C
+
+hciconfig
+
+andy@HoloBabe:~/mobilemeasure$ sudo hciconfig
+[sudo] password for andy: 
+hci0:	Type: BR/EDR  Bus: USB
+	BD Address: 00:02:72:CC:D2:E0  ACL MTU: 1021:8  SCO MTU: 64:1
+	UP RUNNING PSCAN 
+	RX bytes:844 acl:0 sco:0 events:35 errors:0
+	TX bytes:646 acl:0 sco:0 commands:39 errors:4
+
+# Set ISCAN PSCAN flags (make it discoverable)
+andy@HoloBabe:~$ sudo hciconfig hci0 piscan
+
+andy@HoloBabe:~/mobilemeasure$ sudo hciconfig --all
+hci0:	Type: BR/EDR  Bus: USB
+	BD Address: 00:02:72:CC:D2:1C  ACL MTU: 1021:8  SCO MTU: 64:1
+	UP RUNNING PSCAN ISCAN 
+	RX bytes:17989 acl:251 sco:0 events:403 errors:0
+	TX bytes:11270 acl:267 sco:0 commands:111 errors:0
+	Features: 0xbf 0xfe 0xcf 0xfe 0xdb 0xff 0x7b 0x87
+	Packet type: DM1 DM3 DM5 DH1 DH3 DH5 HV1 HV2 HV3 
+	Link policy: RSWITCH SNIFF 
+	Link mode: SLAVE ACCEPT 
+	Name: 'HoloBabe-0'
+	Class: 0x420100
+	Service Classes: Networking, Telephony
+	Device Class: Computer, Uncategorized
+	HCI Version: 4.0 (0x6)  Revision: 0x1000
+	LMP Version: 4.0 (0x6)  Subversion: 0x220e
+	Manufacturer: Broadcom Corporation (15)
+
+
+man beachte in der Ausgabe das ISCAN Flag
+
+# nun mal mit meinem Samsung S3 gepaired:
+andy@HoloBabe:~$ bluetooth-agent 4835
+Confirmation request of 795182 for device /org/bluez/2869/hci0/dev_D8_57_EF_20_51_64
+
+rfcomm
+
+hciconfig hci0 noscan
+
+SDP (Service Discovery Protocol) dient zur Abfrage der auf dem entfernten
+Gerät verfügbaren Dienste (Bluetooth Profile). Welche Dienste das Gerät anbietet,
+lässt sich mit dem Befehl sdptool browse abfragen
+
+andy@HoloBabe:/etc/bluetooth$ sdptool browse 00:02:72:CC:D2:13
+Browsing 00:02:72:CC:D2:13 ...
+Service Name: OBEX Object Push
+Service RecHandle: 0x10000
+Service Class ID List:
+ .....
+
+========== Pairing PC <-> PC =======
+andy@HoloBabe:~$ sudo bluetooth-agent 4435
+Passkey request for device /org/bluez/2869/hci0/dev_00_02_72_CC_D2_13
+
+andy@cudababe:$ bluez-simple-agent hci0 00:02:72:CC:D2:1C
+Enter passkey: 4435
+New device (/....)
+
+andy@HoloBabe:~$ bluez-test-device trusted 00:02:72:CC:D2:13 yes
+
+========== Links ================
+
+https://wiki.debian.org/BluetoothUser
+http://wiki.gentoo.org/wiki/Bluetooth
+http://www.jstuber.net/lego/nxt-programming/bluetooth-linux.html
+https://stackoverflow.com/questions/17835469/using-bluetooth-low-energy-in-linux-command-line
+http://www.ioncannon.net/linux/1570/bluetooth-4-0-le-on-raspberry-pi-with-bluez-5-x/
+
+==================== neu =========================
+
+# alles mit bluetooth entfernt:
+andy@HoloBabe:~$ dpkg --get-selections |grep blue
+andy@HoloBabe:~$
+andy@HoloBabe:~$ sudo apt-get install bluez
+
+andy@HoloBabe:~$ hcitool dev
+Devices:
+	hci0	00:02:72:CC:D2:1C
+
+andy@cudababe:~$ hcitool dev
+Devices:
+	hci0	00:1A:7D:DA:71:0E
+
+sdptool add --channel=5 SP
+
+
+========= bluez 5.18 kompilieren =========
+
+wget http://www.kernel.org/pub/linux/bluetooth/bluez-5.18.tar.xz
+tar xf bluez-5.18.tar.xz
+cd bluez-5.18
+
+sudo apt-get install libglib2.0-dev libdbus-1-dev libudev-dev libical-dev
+
+========= Testen mit Bluetooth LE ======
+
+auf cudababe:
+ sudo hciconfig hci0 up
+ sudo hciconfig hci0 leadv 0
+
+auf holobabe:
+ $ sudo hciconfig hci0 up
+
+ $ sudo hcitool lescan
+  LE Scan ...
+  00:02:72:CC:D2:13 (unknown)
+  00:02:72:CC:D2:13 (unknown)
+
+ $ sudo hcitool lecc 00:02:72:CC:D2:13
+  Connection handle 64
+
+hcidump
+----------
+
+http://mike.saunby.net/2013/04/raspberry-pi-and-ti-cc2541-sensortag.html
+http://i-miss-erin.blogspot.de/2011/09/bt-le-findme-profile-in-bluez.html
+http://joost.damad.be/2013/08/experiments-with-bluetooth-low-energy.html
